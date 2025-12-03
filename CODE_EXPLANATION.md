@@ -143,7 +143,6 @@ Notes:
 
 ---
 
-## 9) Recommended improvements (next steps)
 
 - Add CLI arguments to `all.py` to configure datasets and output folders.
 - Add a `--save-artifacts` flag that controls whether models are saved.
@@ -153,7 +152,7 @@ Notes:
 
 ---
 
-## 10) Quick run commands (PowerShell)
+## 9) Quick run commands (PowerShell)
 
 ```powershell
 python -m venv .venv
@@ -164,8 +163,4 @@ python realtime_ids.py
 ```
 
 ---
-
-If you'd like, I can also:
-- Annotate `all.py` inline with comments next to each major block.
-- Convert `all.py` into a function-based script and expose a `main()` with CLI args using `argparse`.
 

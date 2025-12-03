@@ -55,14 +55,8 @@ Both files are expected to be in the project root. The code reads them with `hea
 - FileNotFoundError when loading `classical/logistic_model.joblib` — ensure you have run `all.py` and that the `classical` directory exists and contains the expected `.joblib` files.
 - If running from a different working directory, set `base_dir = os.path.dirname(os.path.abspath(__file__))` and use `os.path.join(base_dir, ...)` to reliably construct paths. The scripts in this repo use that approach.
 
-## Citations
-Please keep any original dataset or literature citations that may accompany the dataset or assignment materials. (This README does not remove any in-repo citations.)
 
-## Contact / Notes
-If you want, I can also:
-- Add a `requirements.lock` or `pip freeze` output.
-- Convert the training script to accept CLI args for dataset paths and output directory.
-- Add unit tests or a small demo runner that trains and then runs the real-time simulation automatically.
+Please keep any original dataset or literature citations that may accompany the dataset or assignment materials. (This README does not remove any in-repo citations.)
 
 
 
@@ -78,25 +72,6 @@ Intrusion detection, deep neural networks, machine learning, deep learning
 **<sup>∗</sup>Department of Mechanical Engineering, Amrita Vishwa Vidyapeetham, India.** <br/> 
 <sup>†</sup>Center for Computational Engineering and Networking (CEN), Amrita School of Engineering, Coimbatore.<br/> 
 <sup>‡</sup>Center for Cyber Security Systems and Networks, Amrita School of Engineering, Amritapuri Amrita Vishwa Vidyapeetham, India.
-
-## How to run the code?
-### For **Classical Machine Learning**
-* Run `all.py` [[Link]](https://github.com/rahulvigneswaran/Intrusion-Detection-Systems/blob/master/all.py)
-### For **Deep Neural Network (100 iterations)** 
-* Run `dnn1.py` for 1-hidden layer network and run `dnn1acc.py` for finding it's accuracy. [[Link]](https://github.com/rahulvigneswaran/Intrusion-Detection-Systems/tree/master/dnn)
-* Run `dnn2.py` for 2-hidden layer network and run `dnn2acc.py` for finding it's accuracy. [[Link]](https://github.com/rahulvigneswaran/Intrusion-Detection-Systems/tree/master/dnn)
-* Run `dnn3.py` for 3-hidden layer network and run `dnn3acc.py` for finding it's accuracy. [[Link]](https://github.com/rahulvigneswaran/Intrusion-Detection-Systems/tree/master/dnn)
-* Run `dnn4.py` for 4-hidden layer network and run `dnn4acc.py` for finding it's accuracy. [[Link]](https://github.com/rahulvigneswaran/Intrusion-Detection-Systems/tree/master/dnn)
-* Run `dnn5.py` for 5-hidden layer network and run `dnn5acc.py` for finding it's accuracy. [[Link]](https://github.com/rahulvigneswaran/Intrusion-Detection-Systems/tree/master/dnn)
-
-### For **Deep Neural Network (1000 iterations)** 
-* Run `dnn1.py` for 1-hidden layer network and run `dnn1acc.py` for finding it's accuracy. [[Link]](https://github.com/rahulvigneswaran/Intrusion-Detection-Systems/tree/master/dnn1000)
-* Run `dnn2.py` for 2-hidden layer network and run `dnn2acc.py` for finding it's accuracy. [[Link]](https://github.com/rahulvigneswaran/Intrusion-Detection-Systems/tree/master/dnn1000)
-* Run `dnn3.py` for 3-hidden layer network and run `dnn3acc.py` for finding it's accuracy. [[Link]](https://github.com/rahulvigneswaran/Intrusion-Detection-Systems/tree/master/dnn1000)
-* Run `dnn4.py` for 4-hidden layer network and run `dnn4acc.py` for finding it's accuracy. [[Link]](https://github.com/rahulvigneswaran/Intrusion-Detection-Systems/tree/master/dnn1000)
-* Run `dnn5.py` for 5-hidden layer network and run `dnn5acc.py` for finding it's accuracy. [[Link]](https://github.com/rahulvigneswaran/Intrusion-Detection-Systems/tree/master/dnn1000)
-
-
 
 ## Recommended Citation :
 If you use this repository in your research, cite the the following papers :
