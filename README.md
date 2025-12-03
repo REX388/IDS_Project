@@ -1,12 +1,17 @@
 # Intrusion Detection System (IDS) Project
 
 ## Overview
-This repository contains a Python-based Intrusion Detection System (IDS) project that uses machine learning to classify network-connection records as either "Normal" or "Attack". The project trains multiple classical classifiers (including Logistic Regression — the primary model used for the real-time simulation) on the KDD-style CSV dataset and includes a small real-time simulation that streams samples and prints alerts to the console.
+
+This repository contains a Python-based Real-Time Intrusion Detection System (IDS) project that uses **Logistic Regression** machine learning to classify network traffic as either "Normal" or "Attack". The project trains a Logistic Regression model on the KDD dataset and includes a real-time simulation that processes network samples and displays alerts to the console.
+
+**Assignment**: CYB 213 - Project 12: Real-Time IDS Simulation  
+**Algorithm**: Logistic Regression (as per assignment requirements)
 
 ## Objectives
-- Train and evaluate several ML classifiers on the provided dataset.
-- Save trained models and preprocessing artifacts for later use.
-- Provide a simple real-time simulation that loads the saved Logistic Regression model and prints per-sample alerts.
+
+- Train and evaluate a Logistic Regression classifier on the KDD dataset
+- Save trained model and preprocessing artifacts for deployment
+- Provide a real-time simulation that loads the saved model and displays per-sample alerts
 
 ## Dataset
 - `kddtrain.csv` — training data (raw KDD-style CSV, no header)
@@ -15,11 +20,13 @@ This repository contains a Python-based Intrusion Detection System (IDS) project
 Both files are expected to be in the project root. The code reads them with `header=None` and uses column 0 as the label and columns 1:42 as features.
 
 ## Files and Purpose
-- `all.py` — training and evaluation script. Trains multiple models, evaluates on test subset, saves models, scalers, and prediction outputs under `classical/`.
-- `realtime_ids.py` — a small runtime script that loads `classical/logistic_model.joblib` and `classical/normalizer.joblib` and simulates streaming classification of test samples.
-- `classical/` — directory used to store saved models and output files (e.g., `logistic_model.joblib`, `normalizer.joblib`, `predictedlabel*.txt`, `predictedproba*.txt`).
-- `requirements.txt` — Python package requirements for running the project.
-- `README.md` — this file (project documentation).
+
+- `all.py` — Training script. Trains Logistic Regression model, evaluates performance, and saves model + scaler to `classical/`
+- `realtime_ids.py` — Real-time simulation script. Loads saved model and scaler, simulates streaming classification, displays alerts
+- `classical/` — Output directory containing saved models (`logistic_model.joblib`, `normalizer.joblib`) and prediction files
+- `requirements.txt` — Python package dependencies (numpy, pandas, scikit-learn, joblib)
+- `README.md` — Project documentation (this file)
+- [`CODE_EXPLANATION.md`](./CODE_EXPLANATION.md) — **Ultra-detailed, line-by-line explanation** of how both scripts work together, including ML concepts, data flow, and troubleshooting
 
 ## Important Notes about Paths and Running
 - The scripts use relative paths anchored at the project root. To avoid file-not-found errors, run the scripts from the `IDS_Project` directory (the folder that contains `all.py`, `realtime_ids.py`, and the CSV files).
@@ -39,6 +46,18 @@ Both files are expected to be in the project root. The code reads them with `hea
   pip install -r requirements.txt
   ```
 3. Train models & generate outputs (this will save artifacts into `classical/`):
+
+## Further Documentation
+
+For a very detailed, step-by-step explanation of the code, including how the training and real-time scripts interact, see [`CODE_EXPLANATION.md`](./CODE_EXPLANATION.md).
+This document covers:
+- Data loading and preprocessing
+- Model training and evaluation
+- Saving/loading artifacts
+- Real-time simulation logic
+- Troubleshooting and extension tips
+
+Refer to it if you want to understand the inner workings or modify the project for your own needs.
   ```powershell
   python all.py
   ```

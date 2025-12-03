@@ -1,309 +1,164 @@
+# ============================================================================
+# Real-Time IDS Training Script - Logistic Regression Implementation
+# ============================================================================
+# This script trains a Logistic Regression model for intrusion detection
+# and saves the trained model and normalizer for real-time use.
+#
+# Assignment: CYB 213 - Project 12: Real-Time IDS Simulation
+# Algorithm: Logistic Regression (as per assignment requirements)
+# ============================================================================
+
 import numpy as np
 import pandas as pd
 from joblib import dump
 import os
-from sklearn.kernel_approximation import RBFSampler
-from sklearn.linear_model import SGDClassifier
-from sklearn.model_selection import train_test_split
-from sklearn import svm
-from sklearn.metrics import classification_report
-from sklearn import metrics
 from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import (precision_score, recall_score,f1_score, accuracy_score,mean_squared_error,mean_absolute_error)
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import Normalizer
-from sklearn.model_selection import GridSearchCV
-from sklearn.svm import SVC
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import (precision_score, recall_score,f1_score, accuracy_score,mean_squared_error,mean_absolute_error, roc_curve, classification_report,auc)
+from sklearn.metrics import (precision_score, recall_score, f1_score, 
+                            accuracy_score, classification_report)
 
+# ============================================================================
+# STEP 1: Path Setup and Data Loading
+# ============================================================================
+# Get the absolute path to the script's directory to ensure paths work
+# regardless of where the script is run from
 base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Load the KDD dataset files
+# header=None means the CSV has no column names in the first row
+print("Loading datasets...")
 traindata = pd.read_csv(os.path.join(base_dir, 'kddtrain.csv'), header=None)
 testdata = pd.read_csv(os.path.join(base_dir, 'kddtest.csv'), header=None)
+print(f"Training data shape: {traindata.shape}")
+print(f"Test data shape: {testdata.shape}")
 
+# ============================================================================
+# STEP 2: Data Sampling (5% for system resource constraints)
+# ============================================================================
 # Use only 5% of the data for training/testing due to system specs
+# This reduces memory usage and computation time while still allowing
+# meaningful model training
 train_frac = int(0.05 * len(traindata))
 test_frac = int(0.05 * len(testdata))
 traindata = traindata.iloc[:train_frac]
 testdata = testdata.iloc[:test_frac]
+print(f"Using 5% of data - Training samples: {train_frac}, Test samples: {test_frac}")
 
-X = traindata.iloc[:,1:42]
-Y = traindata.iloc[:,0]
-C = testdata.iloc[:,0]
-T = testdata.iloc[:,1:42]
+# ============================================================================
+# STEP 3: Feature and Label Extraction
+# ============================================================================
+# Column 0 contains the label (0 = Normal, 1 = Attack)
+# Columns 1-41 contain the 41 network traffic features
+X = traindata.iloc[:, 1:42]  # Training features
+Y = traindata.iloc[:, 0]      # Training labels
+T = testdata.iloc[:, 1:42]    # Test features
+C = testdata.iloc[:, 0]       # Test labels (ground truth)
 
+print(f"Feature matrix shape: {X.shape}")
+print(f"Label distribution in training: {Y.value_counts().to_dict()}")
+
+# ============================================================================
+# STEP 4: Feature Normalization
+# ============================================================================
+# Normalizer() scales each sample (row) to have unit norm (L2 norm = 1)
+# This ensures that no single feature dominates due to scale differences
+# Important: We fit on training data only to avoid data leakage
+print("Normalizing features...")
 scaler = Normalizer().fit(X)
 trainX = scaler.transform(X)
-
 testT = scaler.transform(T)
 
+# Convert to numpy arrays for compatibility with scikit-learn
 traindata = np.array(trainX)
 trainlabel = np.array(Y)
-
 testdata = np.array(testT)
 testlabel = np.array(C)
 
+print("Normalization complete.")
 
+# ============================================================================
+# STEP 5: Model Training - Logistic Regression
+# ============================================================================
+print("\n" + "="*80)
+print("TRAINING LOGISTIC REGRESSION MODEL")
+print("="*80)
 
-#traindata = X_train
-#testdata = X_test
-#trainlabel = y_train
-#testlabel = y_test
+# Initialize Logistic Regression with default parameters
+# Default solver='lbfgs' is efficient for small-to-medium datasets
+# max_iter=100 by default, but can be increased if convergence fails
+model = LogisticRegression(max_iter=1000, random_state=42)
 
-print("-----------------------------------------LR---------------------------------")
-model = LogisticRegression()
+# Train the model on normalized training data
+print("Fitting model...")
 model.fit(traindata, trainlabel)
-# Save model and scaler for realtime use
-from joblib import dump
-# Save trained model and scaler
+print("Model training complete!")
+
+# ============================================================================
+# STEP 6: Save Model and Scaler for Real-Time Use
+# ============================================================================
+# Create the classical directory if it doesn't exist
+os.makedirs('classical', exist_ok=True)
+
+# Save the trained model and scaler using joblib
+# These will be loaded by realtime_ids.py for live predictions
+print("\nSaving model and scaler...")
 dump(model, 'classical/logistic_model.joblib')
 dump(scaler, 'classical/normalizer.joblib')
+print("✓ Saved: classical/logistic_model.joblib")
+print("✓ Saved: classical/normalizer.joblib")
 
-# make predictions
-expected = testlabel
-np.savetxt('classical/expected.txt', expected, fmt='%01d')
+# ============================================================================
+# STEP 7: Model Evaluation on Test Data
+# ============================================================================
+print("\n" + "="*80)
+print("EVALUATING MODEL PERFORMANCE")
+print("="*80)
+
+# Make predictions on the test set
 predicted = model.predict(testdata)
 proba = model.predict_proba(testdata)
 
+# Save predictions for later analysis
+np.savetxt('classical/expected.txt', testlabel, fmt='%01d')
 np.savetxt('classical/predictedlabelLR.txt', predicted, fmt='%01d')
 np.savetxt('classical/predictedprobaLR.txt', proba)
+print("✓ Saved: classical/expected.txt")
+print("✓ Saved: classical/predictedlabelLR.txt")
+print("✓ Saved: classical/predictedprobaLR.txt")
 
-y_train1 = expected
-y_pred = predicted
-accuracy = accuracy_score(y_train1, y_pred)
-recall = recall_score(y_train1, y_pred , average="binary")
-precision = precision_score(y_train1, y_pred , average="binary")
-f1 = f1_score(y_train1, y_pred, average="binary")
+# ============================================================================
+# STEP 8: Calculate and Display Metrics
+# ============================================================================
+# Calculate performance metrics
+accuracy = accuracy_score(testlabel, predicted)
+precision = precision_score(testlabel, predicted, average="binary")
+recall = recall_score(testlabel, predicted, average="binary")
+f1 = f1_score(testlabel, predicted, average="binary")
 
-print("accuracy")
-print("%.3f" %accuracy)
-print("precision")
-print("%.3f" %precision)
-print("racall")
-print("%.3f" %recall)
-print("f1score")
-print("%.3f" %f1)
+# Display results
+print("\n" + "-"*80)
+print("PERFORMANCE METRICS")
+print("-"*80)
+print(f"Accuracy:  {accuracy:.3f}")
+print(f"Precision: {precision:.3f}")
+print(f"Recall:    {recall:.3f}")
+print(f"F1-Score:  {f1:.3f}")
+print("-"*80)
 
-# fit a Naive Bayes model to the data
-print("-----------------------------------------NB---------------------------------")
-model = GaussianNB()
-model.fit(traindata, trainlabel)
-print(model)
-# make predictions
-expected = testlabel
-predicted = model.predict(testdata)
-proba = model.predict_proba(testdata)
+# Display detailed classification report
+print("\nDetailed Classification Report:")
+print(classification_report(testlabel, predicted, target_names=['Normal', 'Attack']))
 
-np.savetxt('classical/predictedlabelNB.txt', predicted, fmt='%01d')
-np.savetxt('classical/predictedprobaNB.txt', proba)
+# ============================================================================
+# Training Complete
+# ============================================================================
+print("\n" + "="*80)
+print("TRAINING COMPLETED SUCCESSFULLY")
+print("="*80)
+print("\nNext steps:")
+print("1. Review the metrics above to assess model performance")
+print("2. Run 'python realtime_ids.py' to start the real-time IDS simulation")
+print("="*80)
 
-y_train1 = expected
-y_pred = predicted
-accuracy = accuracy_score(y_train1, y_pred)
-recall = recall_score(y_train1, y_pred , average="binary")
-precision = precision_score(y_train1, y_pred , average="binary")
-f1 = f1_score(y_train1, y_pred, average="binary")
-
-print("accuracy")
-print("%.3f" %accuracy)
-print("precision")
-print("%.3f" %precision)
-print("racall")
-print("%.3f" %recall)
-print("f1score")
-print("%.3f" %f1)
-
-# fit a k-nearest neighbor model to the data
-print("-----------------------------------------KNN---------------------------------")
-model = KNeighborsClassifier()
-model.fit(traindata, trainlabel)
-print(model)
-# make predictions
-expected = testlabel
-predicted = model.predict(testdata)
-proba = model.predict_proba(testdata)
-
-
-np.savetxt('classical/predictedlabelKNN.txt', predicted, fmt='%01d')
-np.savetxt('classical/predictedprobaKNN.txt', proba)
-
-# summarize the fit of the model
-
-y_train1 = expected
-y_pred = predicted
-accuracy = accuracy_score(y_train1, y_pred)
-recall = recall_score(y_train1, y_pred , average="binary")
-precision = precision_score(y_train1, y_pred , average="binary")
-f1 = f1_score(y_train1, y_pred, average="binary")
-
-
-print("----------------------------------------------")
-print("accuracy")
-print("%.3f" %accuracy)
-print("precision")
-print("%.3f" %precision)
-print("racall")
-print("%.3f" %recall)
-print("f1score")
-print("%.3f" %f1)
-
-print("-----------------------------------------DT---------------------------------")
-
-model = DecisionTreeClassifier()
-model.fit(traindata, trainlabel)
-print(model)
-# make predictions
-expected = testlabel
-predicted = model.predict(testdata)
-proba = model.predict_proba(testdata)
-
-np.savetxt('classical/predictedlabelDT.txt', predicted, fmt='%01d')
-np.savetxt('classical/predictedprobaDT.txt', proba)
-# summarize the fit of the model
-
-y_train1 = expected
-y_pred = predicted
-accuracy = accuracy_score(y_train1, y_pred)
-recall = recall_score(y_train1, y_pred , average="binary")
-precision = precision_score(y_train1, y_pred , average="binary")
-f1 = f1_score(y_train1, y_pred, average="binary")
-
-
-print("----------------------------------------------")
-print("accuracy")
-print("%.3f" %accuracy)
-print("precision")
-print("%.3f" %precision)
-print("racall")
-print("%.3f" %recall)
-print("f1score")
-print("%.3f" %f1)
-
-
-print("-----------------------------------------Adaboost---------------------------------")
-
-model = AdaBoostClassifier(n_estimators=100)
-model.fit(traindata, trainlabel)
-
-# make predictions
-expected = testlabel
-predicted = model.predict(testdata)
-proba = model.predict_proba(testdata)
-
-np.savetxt('classical/predictedlabelAB.txt', predicted, fmt='%01d')
-np.savetxt('classical/predictedprobaAB.txt', proba)
-# summarize the fit of the model
-
-y_train1 = expected
-y_pred = predicted
-accuracy = accuracy_score(y_train1, y_pred)
-recall = recall_score(y_train1, y_pred , average="binary")
-precision = precision_score(y_train1, y_pred , average="binary")
-f1 = f1_score(y_train1, y_pred, average="binary")
-
-
-print("----------------------------------------------")
-print("accuracy")
-print("%.3f" %accuracy)
-print("precision")
-print("%.3f" %precision)
-print("racall")
-print("%.3f" %recall)
-print("f1score")
-print("%.3f" %f1)
-
-model = RandomForestClassifier(n_estimators=100)
-model = model.fit(traindata, trainlabel)
-
-# make predictions
-expected = testlabel
-predicted = model.predict(testdata)
-proba = model.predict_proba(testdata)
-np.savetxt('classical/predictedlabelRF.txt', predicted, fmt='%01d')
-np.savetxt('classical/predictedprobaRF.txt', proba)
-
-# summarize the fit of the model
-
-print("--------------------------------------RF--------------------------------------")
-
-y_train1 = expected
-y_pred = predicted
-accuracy = accuracy_score(y_train1, y_pred)
-recall = recall_score(y_train1, y_pred , average="binary")
-precision = precision_score(y_train1, y_pred , average="binary")
-f1 = f1_score(y_train1, y_pred, average="binary")
-
-
-print("----------------------------------------------")
-print("accuracy")
-print("%.3f" %accuracy)
-print("precision")
-print("%.3f" %precision)
-print("racall")
-print("%.3f" %recall)
-print("f1score")
-print("%.3f" %f1)
-
-
-model = svm.SVC(kernel='rbf',probability=True)
-model = model.fit(traindata, trainlabel)
-
-# make predictions
-expected = testlabel
-predicted = model.predict(testdata)
-proba = model.predict_proba(testdata)
-np.savetxt('classical/predictedlabelSVM-rbf.txt', predicted, fmt='%01d')
-np.savetxt('classical/predictedprobaSVM-rbf.txt', proba)
-
-print("--------------------------------------SVMrbf--------------------------------------")
-y_train1 = expected
-y_pred = predicted
-accuracy = accuracy_score(y_train1, y_pred)
-recall = recall_score(y_train1, y_pred , average="binary")
-precision = precision_score(y_train1, y_pred , average="binary")
-f1 = f1_score(y_train1, y_pred, average="binary")
-
-print("accuracy")
-print("%.3f" %accuracy)
-print("precision")
-print("%.3f" %precision)
-print("racall")
-print("%.3f" %recall)
-print("f1score")
-print("%.3f" %f1)
-
-
-model = svm.SVC(kernel='linear', C=1000,probability=True)
-model.fit(traindata, trainlabel)
-print(model)
-# make predictions
-expected = testlabel
-predicted = model.predict(testdata)
-proba = model.predict_proba(testdata)
-
-np.savetxt('classical/predictedlabelSVM-linear.txt', predicted, fmt='%01d')
-np.savetxt('classical/predictedprobaSVM-linear.txt', proba)
-
-# summarize the fit of the model
-print("--------------------------------------SVM linear--------------------------------------")
-y_train1 = expected
-y_pred = predicted
-accuracy = accuracy_score(y_train1, y_pred)
-recall = recall_score(y_train1, y_pred , average="binary")
-precision = precision_score(y_train1, y_pred , average="binary")
-f1 = f1_score(y_train1, y_pred, average="binary")
-
-print("accuracy")
-print("%.3f" %accuracy)
-print("precision")
-print("%.3f" %precision)
-print("racall")
-print("%.3f" %recall)
-print("f1score")
-print("%.3f" %f1)
 
 
